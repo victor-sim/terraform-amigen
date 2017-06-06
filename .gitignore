@@ -1,0 +1,62 @@
+# Ignore file for ngui project
+
+# We don't need to share project dirs, causes more problems than it's worth
+.idea/
+.vscode/
+.DS_Store
+
+# These dirs should never go to upstream as they are not needed but are
+# built
+/node_modules/
+/typings/
+/coverage/
+**/_dist/
+**/*.swp
+build/*
+/dev/unit-testing/coverage
+/dev/tslint-report
+/WWW/shared/soti-node-modules/**/*.js
+/WWW/shared/soti-node-modules/**/*.js.map
+/WWW/portals/**/*.js
+/WWW/portals/**/*.js.map
+npm-debug.log
+npm-debug.log.*
+/dev/code-generation/**/*.xml
+
+/WWW/live/**/*.js
+/WWW/live/**/*.js.map
+/WWW/portals/**/*.css
+/WWW/portals/**/*.css.map
+/dev/sandbox-tests/**/*.js
+/dev/sandbox-tests/**/*.js.map
+/WWW/shared/**/*.js
+/WWW/shared/**/*.js.map
+/WWW/shared/**/*.css
+/WWW/shared/**/*.css.map
+
+/WWW/shared/localizations/oauthDitionary.js
+/wWW/shared/localizations/oauthDitionary.map
+/WWW/shared/localizations/dictionary.js
+/WWW/shared/localizations/dictionary.map
+/WWW/shared/localizations/ValidationMessages.js
+/WWW/shared/localizations/ValidationMessages.map
+/WWW/shared/tslint-custom-rules/**/*.js
+/WWW/shared/tslint-custom-rules/**/*.map
+
+
+# Excludes: We need these files for some reason, but they live in excluded locations
+!/build/Build_proj2.ps1
+!build/login
+!/build/Build_sys.groovy
+!/WWW/portals/style-guide/app/views/data-grid/
+!/WWW/portals/style-guide/app/views/navigation/
+!/WWW/shared/localizations/*.js
+!/WWW/shared/styles/fonts/**
+
+# Scripts that are used for web-workers
+!/WWW/shared/web-workers/*.js
+
+# Ignore some personal ignore files
+.ignore
+!/WWW/shared/soti-node-modules/utils/api-client-mocker/_mock.data.js
+!/WWW/shared/flip.js
