@@ -1,0 +1,169 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "This template creates a single WWW server installation. **WARNING** This template creates Amazon EC2 Windows instance and related resources. You will be billed for the AWS resources used if you create a stack from this template. Also, you are solely responsible for complying with the license terms for the software downloaded and installed by this template. By creating a stack from this template, you are agreeing to such terms.",
+
+  "Parameters" : {
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair",
+      "Type" : "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+    },
+
+    "InstanceType" : {
+      "Description" : "Amazon EC2 instance type",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t1.micro", "t2.micro", "t2.small", "t2.medium", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge", "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "r3.large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"],
+      "ConstraintDescription" : "must be a valid EC2 instance type."
+    },
+	
+	"OS" : {
+      "Description" : "Windows OS version",
+      "Type" : "String",
+      "Default" : "Windows2012r2",
+      "AllowedValues" : [ "Windows2016", "Windows2012r2"],
+      "ConstraintDescription" : "Select one"
+    },
+	
+    "SourceCidrForRDP" : {
+      "Description" : "IP Cidr from which you are likely to RDP into the instances. You can add rules later by modifying the created security groups e.g. 54.32.98.160/32",
+      "Type" : "String",
+      "MinLength" : "9",
+      "MaxLength" : "18",
+      "AllowedPattern" : "^([0-9]+\\.){3}[0-9]+\\/[0-9]+$"
+    },
+	
+    "AdminPassword" : {
+      "Description" : "Password for Admin Account",
+      "Type" : "String",
+      "MinLength" : "5",
+      "MaxLength" : "24"
+    }
+  },
+
+  "Mappings" : {
+    "AWSRegion2AMI" : {
+      "us-east-1"        : {"Windows2016" : "ami-f1b5cfe7", "Windows2012r2" : "ami-271b6d31"},
+      "us-east-2"        : {"Windows2016" : "ami-799bbc1c", "Windows2012r2" : "ami-7fc4e31a"}
+    }
+
+  },
+
+  "Resources" : {
+    "TerraformAmiGenSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP and RDP",
+        "SecurityGroupIngress" : [
+          {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
+          {"IpProtocol" : "tcp", "FromPort" : "3389", "ToPort" : "3389", "CidrIp" : { "Ref" : "SourceCidrForRDP" }}
+        ]
+		
+      }
+    },
+	
+	"TerraformAmiGenEIP" : {
+      "Type" : "AWS::EC2::EIP",
+      "Properties" : {
+        "InstanceId" : { "Ref" : "TerraformAmiGen" }
+      }
+    },
+
+    "TerraformAmiGen": {
+      "Type" : "AWS::EC2::Instance",
+      "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "config" : {
+            "files" : {
+              "c:\\cfn\\cfn-hup.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[main]\n",
+                  "stack=", { "Ref" : "AWS::StackId" }, "\n",
+                  "region=", { "Ref" : "AWS::Region" }, "\n"
+                  ]]}
+              },
+              "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf" : {
+                "content": { "Fn::Join" : ["", [
+                  "[cfn-auto-reloader-hook]\n",
+                  "triggers=post.update\n",
+                  "path=Resources.TerraformAmiGen.Metadata.AWS::CloudFormation::Init\n",
+                  "action=cfn-init.exe -v -s ", { "Ref" : "AWS::StackId" },
+                                                 " -r TerraformAmiGen",
+                                                 " --region ", { "Ref" : "AWS::Region" }, "\n"
+                ]]}
+              },
+			  "C:\\InitFiles\\Git-2.13.0-64-bit.exe" : {
+			    "source" : "https://s3.us-east-2.amazonaws.com/win-install-apps/Git-2.13.0-64-bit.exe"
+			  },
+			  "C:\\InitFiles\\npp.7.4.1.x64.zip" : {
+			    "source" : "https://s3.us-east-2.amazonaws.com/win-install-apps/npp.7.4.1.bin.x64.zip"
+			  },
+			  "C:\\InitFiles\\TerraformAmiGen.ps1" : {
+				"source" : "https://s3.us-east-2.amazonaws.com/script-share/TerraformAmiGen.ps1"
+			  },
+			  "C:\\InitFiles\\terraform_0.9.6_windows_amd64.zip" : {
+				"source" : "https://s3.us-east-2.amazonaws.com/win-install-apps/terraform_0.9.6_windows_amd64.zip"
+			  }
+            },
+            "commands" : {
+              "1-PS" : {
+			    "command" : { "Fn::Join" : ["", [
+					"powershell.exe -ExecutionPolicy RemoteSigned -NonInteractive -Command \"C:\\InitFiles\\TerraformAmiGen.ps1\"",
+					" -AdminPw ", { "Ref" : "AdminPassword" }
+				]]}
+			  }
+            },
+            
+            "services" : {
+              "windows" : {
+                "cfn-hup" : {
+                  "enabled" : "true",
+                  "ensureRunning" : "true",
+                  "files" : ["c:\\cfn\\cfn-hup.conf", "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"]
+                }
+              }
+            }
+          }
+        }
+      },
+	  
+      "Properties": {
+        "InstanceType" : { "Ref" : "InstanceType" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSRegion2AMI", { "Ref" : "AWS::Region" }, { "Ref" : "OS" } ]},
+        "SecurityGroups" : [ {"Ref" : "TerraformAmiGenSecurityGroup"} ],
+        "KeyName" : { "Ref" : "KeyName" },
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "<script>\n",
+
+          "cfn-init.exe -v -s ", { "Ref" : "AWS::StackId" }, 
+          " -r TerraformAmiGen",
+          " --region ", { "Ref" : "AWS::Region" }, "\n",
+		  
+		  "powershell.exe -ExecutionPolicy RemoteSigned -NonInteractive -Command \"C:\\InitFiles\\init.ps1\"", "\n",
+		  
+		  "/opt/aws/bin/cfn-signal -e $? --stack ", { "Ref" : "AWS::StackName" }, " --resource TerraformAmiGen \n",
+          
+          "</script>", "\n"
+          ]]}},
+		"Tags" : [
+            {
+                "Key" : "Name",
+                "Value" : "TerraformAmiGen"
+            }
+         ]
+      }
+    }
+  },
+
+  "Outputs" : {
+    "TerraformAmiGenURL" : {
+      "Value" : { "Fn::Join" : ["", ["http://", { "Ref" : "TerraformAmiGenEIP" } ]] },
+      "Description" : "TerraformAmiGen instance URL."
+    },
+	"TerraformAmiGenInstanceId" : {
+	  "Value" :  { "Ref" : "TerraformAmiGen" } ,
+      "Description" : "TerraformAmiGen instance ID."
+	}
+  }
+}
