@@ -36,7 +36,7 @@ provider "aws" {
 
 # Default security group to access the instances via w3web over HTTP and HTTPS
 resource "aws_security_group" "w3web" {
-  name        = "terraform_w3web"
+  name        = "terraform_w3"
   description = "Used in the terraform"
 
   # w3web access from anywhere
