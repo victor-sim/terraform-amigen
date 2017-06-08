@@ -120,9 +120,13 @@ resource "aws_instance" "ami_base" {
   
   provisioner "local-exec" {
     command = <<EOT
+		echo $USER
+		echo $USER > user.txt
 		echo "PublicIp: ${aws_instance.ami_base.public_ip}" > info.txt
 		echo "PrivateIp: ${aws_instance.ami_base.public_ip}" >> info.txt
 		echo "InstanceId: ${aws_instance.ami_base.id}" >> info.txt
+		echo ${aws_instance.ami_base.id} >> instanceId.txt
+
 
 		Ami=$(aws ec2 create-image --instance-id ${aws_instance.ami_base.id} --name "TestAmiImageTerra${aws_instance.ami_base.id}")
 		echo $Ami | python -c "import json,sys;obj=json.load(sys.stdin);print obj['ImageId'];"
