@@ -35,6 +35,7 @@ provider "aws" {
 
 
 # Default security group to access the instances via w3web over HTTP and HTTPS
+/*
 resource "aws_security_group" "w3web" {
   name        = "terraform_w3"
   description = "Used in the terraform"
@@ -62,6 +63,7 @@ resource "aws_security_group" "w3web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+*/
 
 data "aws_instance" "gocd" {
   instance_id = "i-0261a2d5712b2d3f3"
@@ -76,7 +78,7 @@ resource "aws_instance" "ami_base" {
   ami           = "ami-4191b524"
   instance_type = "t2.micro"
   key_name = "${var.key_name}"
-  security_groups = ["${aws_security_group.w3web.name}"]
+  security_groups = ["terraform_w3"]
   tags {
     Name = "TF_Linux"
   }
